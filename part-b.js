@@ -61,3 +61,82 @@ function diffObjects(oldObj, newObj) {
 
   return { added, removed, changed };
 }
+
+console.log("problem 2");
+console.log(
+  diffObjects(
+    { name: "Setemi", role: "Engineer", country: "Jamaica" },
+    { name: "Setemi", role: "Senior Engineer", city: "Kingston" }
+  )
+);
+// { added: { city: 'Kingston' }, removed: { country: 'Jamaica' },
+//   changed: { role: { from: 'Engineer', to: 'Senior Engineer' } } }
+
+// ---------- Problem 3 - Deep Freeze ----------
+function deepFreze(obj) {
+  // Freeze the top level first
+  Object.freeze(obj);
+
+  // Then freeze every nested object or array
+  Object.values(obj).forEach((value) => {
+    if (typeof value === "object" && value ! == null && !Object.isFrozen(value)) {
+      deepFreeze(value);
+    }
+  });
+
+  return obj;
+}
+
+console.log("Problem 3");
+const config = deepFreeze({ api: { baseUel: "https://x.com", retries: 3 }, debug: false });
+config.api.baseUrl = "https://changed.com"; // should be ignored
+config.debug = true;                        // should be ignored
+console,log(config.api.baseUrl, config.debug);  // "https://x.com" false
+console.log(Object.isFrozen(config.api));       // true
+
+// ---------- Problem 4 - Private Counter Factory ----------
+function createCounter() {
+  let count = 0; // private: only reachable through the closure
+
+  return {
+    increment() {
+      count++;
+    },
+    decrement() {
+      count--;
+    },
+    get value() {
+      return count;
+    },
+  };
+}
+
+console.log("Problem 4");
+const counter = createCounter();
+counter.increment();
+counter.increment();
+counter.decrement();
+console.log(counter.value); //1
+console.log(counter.count); // undefined - not directly accessible
+
+// ---------- Problem 5 - Schema Validator ----------
+function validateSchema(obj, schema) {
+  const errors = [];
+
+  for (const [key, expectedType] of Object.entries(schema)) {
+    if (!Object.hasOwn(obj, key)) {
+      errors.push('${key}: missing property');
+    } else if (typeof obj[key] !== expectedType) {
+      errors.push('${key}: expected ${expectedType}, got ${typeof obj[key]}');
+    }
+  }
+
+  return errors;
+}
+
+cosole.log("Problem 5");
+const schema = { name: "string", age: "number", isAdmin: "boolean" };
+console.log(validateSchema({ name: "Ada", age: 21, isAdmin: false }, schema));
+// []
+console.log(validateSchema({ name: "Ada", age: "21" }, schema));
+// ['age: expected number, got string', 'isAdmin: missing property']
